@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "Wallet API"
+    APP_NAME: str = "E-Wallet API"
     DEBUG: bool = False
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
