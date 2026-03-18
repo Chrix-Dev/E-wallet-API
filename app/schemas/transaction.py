@@ -1,12 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel
+from uuid import UUID
 
 from app.models.transaction import TransactionType, TransactionStatus
 
 
 class TransactionResponse(BaseModel):
-    id: str
+    id: UUID
     reference: str
     type: TransactionType
     status: TransactionStatus

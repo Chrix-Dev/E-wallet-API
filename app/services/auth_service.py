@@ -19,7 +19,6 @@ from app.schemas.auth import RegisterRequest, LoginRequest
 
 
 async def register_user(data: RegisterRequest, db: AsyncSession):
-    # check if email already exists
     result = await db.execute(select(User).where(User.email == data.email))
     existing = result.scalar_one_or_none()
 
@@ -32,10 +31,15 @@ async def register_user(data: RegisterRequest, db: AsyncSession):
         hashed_password=hash_password(data.password),
     )
     db.add(user)
-    await db.flush()  # flush so user.id is available before we create the wallet
+    await db.flush()
 
-    # create a wallet for the user automatically on signup
-    wallet = Wallet(user_id=user.id)
+    while True:
+        account_number = str(random.randint(1000000000, 9999999999))
+        existing_acc = await db.execute(select(Wallet).where(Wallet.account_number == account_number))
+        if not existing_acc.scalar_one_or_none():
+            break
+
+    wallet = Wallet(user_id=user.id, account_number=account_number)
     db.add(wallet)
 
     await db.commit()

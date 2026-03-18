@@ -1,5 +1,6 @@
 from decimal import Decimal
 from pydantic import BaseModel
+from uuid import UUID
 
 
 class FundWalletRequest(BaseModel):
@@ -7,7 +8,7 @@ class FundWalletRequest(BaseModel):
 
 
 class WalletResponse(BaseModel):
-    id: str
+    id: UUID
     account_number: str
     balance: Decimal
     currency: str
