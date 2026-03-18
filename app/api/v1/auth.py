@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.auth import RegisterRequest, LoginRequest, RefreshRequest, TokenResponse, UserResponse
 from app.services import auth_service
+from app.services.google_auth_service import get_google_auth_url, google_login
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -29,6 +31,18 @@ async def refresh(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
 @router.post("/logout")
 async def logout(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
     return await auth_service.logout_user(data.refresh_token, db)
+
+
+@router.get("/google")
+async def google_auth():
+    url = get_google_auth_url()
+    return RedirectResponse(url)
+
+
+@router.get("/google/callback", response_model=TokenResponse)
+async def google_callback(code: str = Query(...), db: AsyncSession = Depends(get_db)):
+    tokens = await google_login(code, db)
+    return {**tokens, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=UserResponse)
