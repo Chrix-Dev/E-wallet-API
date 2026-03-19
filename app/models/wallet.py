@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.db.base import Base  # new
+from app.db.base import Base
 
 
 class Wallet(Base):
@@ -18,6 +18,12 @@ class Wallet(Base):
     account_number = Column(String(10), unique=True, nullable=False, index=True)
     currency = Column(String(3), default="NGN", nullable=False)
     is_active = Column(Boolean, default=True)
+
+    # daily usage tracking
+    daily_transfer_used = Column(Numeric(20, 2), default=Decimal("0.00"), nullable=False)
+    daily_withdrawal_used = Column(Numeric(20, 2), default=Decimal("0.00"), nullable=False)
+    last_daily_reset = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True),

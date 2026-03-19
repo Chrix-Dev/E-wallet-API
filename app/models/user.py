@@ -29,7 +29,7 @@ class User(Base):
 
     # tier 3credentials
     id_type = Column(String(50), nullable=True)  # NIN, passport, drivers_license
-    id_number = Column(String(50), nullable=True)
+    id_number = Column(String(11), nullable=True)
     address = Column(String(255), nullable=True)
 
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
