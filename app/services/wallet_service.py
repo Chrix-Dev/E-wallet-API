@@ -48,6 +48,11 @@ async def invalidate_balance_cache(wallet_id: str):
 
 
 async def initialize_funding(amount: Decimal, user: User, db: AsyncSession):
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email before making transactions"
+        )
     wallet = await get_wallet(user, db)
 
     if not wallet.is_active:
