@@ -18,6 +18,7 @@ class User(Base):
     google_id = Column(String(255), unique=True, nullable=True)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
 
     # tier system
     tier = Column(String(10), default="tier1", nullable=False)
