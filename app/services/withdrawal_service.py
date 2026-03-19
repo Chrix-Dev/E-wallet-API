@@ -12,6 +12,8 @@ from app.models.wallet import Wallet
 from app.models.transaction import Transaction, TransactionType, TransactionStatus
 from app.schemas.withdrawal import WithdrawalRequest
 from app.services.wallet_service import invalidate_balance_cache
+from datetime import datetime, timezone, date
+from app.core.limits import get_limits
 
 
 async def create_transfer_recipient(bank_code: str, account_number: str, name: str) -> str:
@@ -76,6 +78,22 @@ async def withdraw(data: WithdrawalRequest, idempotency_key: str, current_user: 
 
     if not wallet or not wallet.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet not found or inactive")
+    
+     # check and reset daily limit if needed
+    if wallet.last_daily_reset.date() < date.today():
+        wallet.daily_withdrawal_used = Decimal("0.00")
+        wallet.last_daily_reset = datetime.now(timezone.utc)
+
+    limits = get_limits(current_user.tier)
+
+    if data.amount < limits["min_transaction"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Minimum transaction amount is ₦{limits['min_transaction']}")
+
+    if data.amount > limits["max_single_withdrawal"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Maximum single withdrawal for your tier is ₦{limits['max_single_withdrawal']}")
+
+    if wallet.daily_withdrawal_used + data.amount > limits["max_daily_withdrawal"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Daily withdrawal limit of ₦{limits['max_daily_withdrawal']} exceeded")
 
     if wallet.balance < data.amount:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
@@ -84,6 +102,7 @@ async def withdraw(data: WithdrawalRequest, idempotency_key: str, current_user: 
 
     # debit wallet immediately and save a pending transaction
     wallet.balance -= data.amount
+    wallet.daily_withdrawal_used += data.amount
 
     transaction = Transaction(
         reference=reference,
