@@ -59,9 +59,9 @@ async def transfer_funds(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender wallet not found or inactive")
     
      # check and reset daily limit if needed
-    if sender_wallet.last_daily_reset.date() < date.today():
-        sender_wallet.daily_transfer_used = Decimal("0.00")
-        sender_wallet.last_daily_reset = datetime.now(timezone.utc)
+    if sender_wallet.last_daily_reset is None or sender_wallet.last_daily_reset.date() < date.today():
+       sender_wallet.daily_transfer_used = Decimal("0.00")
+       sender_wallet.last_daily_reset = datetime.now(timezone.utc)
 
     limits = get_limits(current_user.tier)
 

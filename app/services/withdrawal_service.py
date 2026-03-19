@@ -80,9 +80,9 @@ async def withdraw(data: WithdrawalRequest, idempotency_key: str, current_user: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet not found or inactive")
     
      # check and reset daily limit if needed
-    if wallet.last_daily_reset.date() < date.today():
-        wallet.daily_withdrawal_used = Decimal("0.00")
-        wallet.last_daily_reset = datetime.now(timezone.utc)
+    if wallet.last_daily_reset is None or wallet.last_daily_reset.date() < date.today():
+       wallet.daily_withdrawal_used = Decimal("0.00")
+       wallet.last_daily_reset = datetime.now(timezone.utc)
 
     limits = get_limits(current_user.tier)
 
