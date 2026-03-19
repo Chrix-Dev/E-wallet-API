@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     SENDGRID_API_KEY: str
     SENDGRID_SENDER_EMAIL: str
 
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
+    ADMIN_FULL_NAME: str
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
