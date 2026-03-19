@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.db.base import Base
 from app.db.sessions import engine
-from app.api.v1 import auth, wallets, webhooks, transactions
+from app.api.v1 import auth, wallets, webhooks, transactions, users
 
 
 @asynccontextmanager
@@ -21,6 +21,8 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(wallets.router, prefix="/api/v1")
 app.include_router(webhooks.router, prefix="/api/v1")
 app.include_router(transactions.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
+
 
 
 @app.get("/health")
