@@ -16,7 +16,7 @@ TIER_LIMITS = {
         "max_daily_transfer": Decimal("1000000"),
         "max_daily_withdrawal": Decimal("500000"),
     },
-    "premium": {
+    "tier3": {
         "min_transaction": Decimal("100"),
         "max_single_transfer": Decimal("2000000"),
         "max_single_withdrawal": Decimal("1000000"),
