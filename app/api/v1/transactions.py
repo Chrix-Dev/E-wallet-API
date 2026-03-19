@@ -1,13 +1,29 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db, get_current_user
 from app.models.transaction import TransactionType, TransactionStatus
 from app.schemas.transaction import TransactionResponse, TransactionListResponse
-from app.services import transaction_service
+from app.services import transaction_service, export_service
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
+
+
+router.get("/export/pdf")
+async def export_transactions_pdf(
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    pdf_bytes = await export_service.generate_transaction_pdf(current_user, db)
+    filename = f"statement_{current_user.full_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @router.get("", response_model=TransactionListResponse)
