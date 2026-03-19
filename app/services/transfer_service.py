@@ -12,6 +12,8 @@ from app.models.transaction import Transaction, TransactionType, TransactionStat
 from app.models.idempotency import IdempotencyKey
 from app.schemas.transfer import TransferRequest
 from app.services.wallet_service import invalidate_balance_cache
+from datetime import datetime, timezone, date
+from app.core.limits import get_limits
 
 
 async def transfer_funds(
@@ -55,6 +57,22 @@ async def transfer_funds(
 
     if not sender_wallet or not sender_wallet.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender wallet not found or inactive")
+    
+     # check and reset daily limit if needed
+    if sender_wallet.last_daily_reset.date() < date.today():
+        sender_wallet.daily_transfer_used = Decimal("0.00")
+        sender_wallet.last_daily_reset = datetime.now(timezone.utc)
+
+    limits = get_limits(current_user.tier)
+
+    if data.amount < limits["min_transaction"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Minimum transaction amount is ₦{limits['min_transaction']}")
+
+    if data.amount > limits["max_single_transfer"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Maximum single transfer for your tier is ₦{limits['max_single_transfer']}")
+
+    if sender_wallet.daily_transfer_used + data.amount > limits["max_daily_transfer"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Daily transfer limit of ₦{limits['max_daily_transfer']} exceeded")
 
     if sender_wallet.balance < data.amount:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
@@ -123,6 +141,9 @@ async def transfer_funds(
         response_snapshot=json.dumps(response)
     )
     db.add(idem_key)
+
+    # update daily usage
+    sender_wallet.daily_transfer_used += data.amount
 
     await db.commit()
     await invalidate_balance_cache(str(sender_wallet.id))
