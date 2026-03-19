@@ -6,6 +6,7 @@ from app.core.dependencies import get_db, get_current_user
 from app.schemas.auth import RegisterRequest, LoginRequest, RefreshRequest, TokenResponse, UserResponse
 from app.services import auth_service
 from app.services.google_auth_service import get_google_auth_url, google_login
+from app.services.auth_service import verify_email
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -14,6 +15,11 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     user = await auth_service.register_user(data, db)
     return user
+
+
+@router.get("/verify")
+async def verify(token: str = Query(...), db: AsyncSession = Depends(get_db)):
+    return await auth_service.verify_email(token, db)
 
 
 @router.post("/login", response_model=TokenResponse)

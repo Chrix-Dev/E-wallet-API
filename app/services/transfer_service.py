@@ -20,6 +20,12 @@ async def transfer_funds(
     current_user: User,
     db: AsyncSession
 ):
+    if not current_user.is_verified:
+       raise HTTPException(
+          status_code=status.HTTP_403_FORBIDDEN,
+          detail="Please verify your email before making transactions"
+    )
+
     # check if we've seen this idempotency key before
     existing = await db.execute(
         select(IdempotencyKey).where(
@@ -101,7 +107,7 @@ async def transfer_funds(
     )
     db.add(transaction)
 
-    # build response before committing so we can snapshot it
+    # build response before committing
     response = {
         "reference": reference,
         "amount": str(data.amount),

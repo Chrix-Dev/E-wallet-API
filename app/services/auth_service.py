@@ -3,6 +3,7 @@ import secrets
 
 from app.models.verification_token import VerificationToken
 from app.services.email_service import send_verification_email
+from app.models.verification_token import VerificationToken
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -59,6 +60,32 @@ async def register_user(data: RegisterRequest, db: AsyncSession):
     # send verification email in background
     await send_verification_email(user.email, user.full_name, token)
     return user
+
+
+async def verify_email(token: str, db: AsyncSession):
+    result = await db.execute(
+        select(VerificationToken).where(
+            VerificationToken.token == token,
+            VerificationToken.is_used == False,
+        )
+    )
+    verification = result.scalar_one_or_none()
+
+    if not verification:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+
+    if verification.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification token has expired")
+
+    # mark token as used and verify the user
+    verification.is_used = True
+
+    user_result = await db.execute(select(User).where(User.id == verification.user_id))
+    user = user_result.scalar_one_or_none()
+    user.is_verified = True
+
+    await db.commit()
+    return {"message": "Email verified successfully"}
 
 
 async def login_user(data: LoginRequest, db: AsyncSession):
