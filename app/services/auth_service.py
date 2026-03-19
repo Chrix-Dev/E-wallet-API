@@ -1,5 +1,8 @@
 import random
+import secrets
 
+from app.models.verification_token import VerificationToken
+from app.services.email_service import send_verification_email
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -42,8 +45,19 @@ async def register_user(data: RegisterRequest, db: AsyncSession):
     wallet = Wallet(user_id=user.id, account_number=account_number)
     db.add(wallet)
 
+    # generate verification token
+    token = secrets.token_urlsafe(32)
+    verification = VerificationToken(
+        user_id=user.id,
+        token=token,
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
+    )
+    db.add(verification)
     await db.commit()
     await db.refresh(user)
+
+    # send verification email in background
+    await send_verification_email(user.email, user.full_name, token)
     return user
 
 
