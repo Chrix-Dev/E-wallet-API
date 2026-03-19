@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # Paystack
     PAYSTACK_SECRET_KEY: str
 
+    # SendGrid
+    SENDGRID_API_KEY: str
+    SENDGRID_SENDER_EMAIL: str
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
