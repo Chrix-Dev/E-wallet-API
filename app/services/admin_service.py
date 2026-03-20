@@ -98,3 +98,16 @@ async def get_dashboard_stats(db: AsyncSession):
         "successful_transactions": successful_transactions.scalar(),
         "total_volume": str(total_volume.scalar() or 0),
     }
+
+async def unlock_user_pin(user_id: str, db: AsyncSession):
+    wallet_result = await db.execute(select(Wallet).where(Wallet.user_id == user_id))
+    wallet = wallet_result.scalar_one_or_none()
+
+    if not wallet:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet not found")
+
+    wallet.is_pin_locked = False
+    wallet.pin_attempts = 0
+    await db.commit()
+
+    return {"message": "Wallet PIN unlocked successfully"}
