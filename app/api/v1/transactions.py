@@ -11,7 +11,7 @@ from app.services import transaction_service, export_service
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
-router.get("/export/pdf")
+@router.get("/export/pdf")
 async def export_transactions_pdf(
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

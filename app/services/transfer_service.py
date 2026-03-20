@@ -14,6 +14,7 @@ from app.schemas.transfer import TransferRequest
 from app.services.wallet_service import invalidate_balance_cache
 from datetime import datetime, timezone, date
 from app.core.limits import get_limits
+from app.services.email_service import send_transfer_sent_email, send_transfer_received_email
 
 
 async def transfer_funds(
@@ -148,4 +149,24 @@ async def transfer_funds(
     await db.commit()
     await invalidate_balance_cache(str(sender_wallet.id))
     await invalidate_balance_cache(str(receiver_wallet.id))
+
+     # notify sender
+    await send_transfer_sent_email(
+        to_email=current_user.email,
+        full_name=current_user.full_name,
+        amount=f"{data.amount:,.2f}",
+        receiver_email=receiver.email,
+        reference=reference,
+        balance=f"{sender_wallet.balance:,.2f}",
+    )
+
+    # notify receiver
+    await send_transfer_received_email(
+        to_email=receiver.email,
+        full_name=receiver.full_name,
+        amount=f"{data.amount:,.2f}",
+        sender_email=current_user.email,
+        reference=reference,
+        balance=f"{receiver_wallet.balance:,.2f}",
+    )
     return response
