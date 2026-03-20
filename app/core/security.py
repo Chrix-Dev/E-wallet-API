@@ -40,3 +40,11 @@ def decode_token(token: str) -> dict:
 def hash_token(token: str) -> str:
     # used to store refresh tokens safely in the DB
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+def hash_pin(pin: str) -> str:
+    return pwd_context.hash(pin)
+
+
+def verify_pin(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain, hashed)
