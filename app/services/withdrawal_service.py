@@ -7,13 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.config import settings
+from app.core.limits import get_limits
 from app.models.user import User
 from app.models.wallet import Wallet
 from app.models.transaction import Transaction, TransactionType, TransactionStatus
 from app.schemas.withdrawal import WithdrawalRequest
 from app.services.wallet_service import invalidate_balance_cache
 from datetime import datetime, timezone, date
-from app.core.limits import get_limits
+from app.services.pin_service import verify_transaction_pin
 
 
 async def create_transfer_recipient(bank_code: str, account_number: str, name: str) -> str:
@@ -78,6 +79,9 @@ async def withdraw(data: WithdrawalRequest, idempotency_key: str, current_user: 
 
     if not wallet or not wallet.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet not found or inactive")
+    
+    # Verify transaction PIN
+    await verify_transaction_pin(data.pin, wallet, db)
     
      # check and reset daily limit if needed
     if wallet.last_daily_reset is None or wallet.last_daily_reset.date() < date.today():

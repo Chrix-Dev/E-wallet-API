@@ -15,6 +15,7 @@ from app.services.wallet_service import invalidate_balance_cache
 from datetime import datetime, timezone, date
 from app.core.limits import get_limits
 from app.services.email_service import send_transfer_sent_email, send_transfer_received_email
+from app.services.pin_service import verify_transaction_pin
 
 
 async def transfer_funds(
@@ -58,6 +59,9 @@ async def transfer_funds(
 
     if not sender_wallet or not sender_wallet.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender wallet not found or inactive")
+    
+    # Verify transaction PIN
+    await verify_transaction_pin(data.pin, sender_wallet, db)
     
      # check and reset daily limit if needed
     if sender_wallet.last_daily_reset is None or sender_wallet.last_daily_reset.date() < date.today():
