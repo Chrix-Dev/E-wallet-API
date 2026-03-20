@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Numeric
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Numeric, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -18,6 +18,9 @@ class Wallet(Base):
     account_number = Column(String(10), unique=True, nullable=False, index=True)
     currency = Column(String(3), default="NGN", nullable=False)
     is_active = Column(Boolean, default=True)
+    transaction_pin = Column(String, nullable=True)
+    pin_attempts = Column(Integer, default=0, nullable=False)
+    is_pin_locked = Column(Boolean, default=False)
 
     # daily usage tracking
     daily_transfer_used = Column(Numeric(20, 2), default=Decimal("0.00"), nullable=False)
