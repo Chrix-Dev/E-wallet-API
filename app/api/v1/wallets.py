@@ -7,6 +7,8 @@ from app.schemas.wallet import FundWalletRequest, WalletResponse
 from app.schemas.transfer import TransferRequest, TransferResponse
 from app.schemas.withdrawal import WithdrawalRequest, WithdrawalResponse
 from app.services import wallet_service, transfer_service, withdrawal_service
+from app.schemas.pin import SetPinRequest, ChangePinRequest
+from app.services import pin_service
 
 router = APIRouter(prefix="/wallets", tags=["Wallets"])
 
@@ -15,6 +17,23 @@ router = APIRouter(prefix="/wallets", tags=["Wallets"])
 async def get_my_wallet(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     wallet = await wallet_service.get_wallet_with_cached_balance(current_user, db)
     return wallet
+
+@router.post("/set-pin")
+async def set_pin(
+    data: SetPinRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    return await pin_service.set_pin(data, current_user, db)
+
+
+@router.post("/change-pin")
+async def change_pin(
+    data: ChangePinRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    return await pin_service.change_pin(data, current_user, db)
 
 
 @router.post("/fund")
