@@ -18,8 +18,6 @@ from app.services.pin_service import verify_transaction_pin
 
 
 async def create_transfer_recipient(bank_code: str, account_number: str, name: str) -> str:
-    # Paystack requires you to first create a "transfer recipient" before sending money
-    # this returns a recipient_code we use in the actual transfer call
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://api.paystack.co/transferrecipient",

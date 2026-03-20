@@ -19,7 +19,7 @@ async def send_verification_email(to_email: str, full_name: str, token: str):
     verification_url = f"http://localhost:8000/api/v1/auth/verify?token={token}"
     _send(
         to_email=to_email,
-        subject="Verify your E-Wallet email",
+        subject="Verify your Aza-Pay email",
         html=f"""
         <h2>Hi {full_name},</h2>
         <p>Thanks for signing up. Click the link below to verify your email address:</p>
