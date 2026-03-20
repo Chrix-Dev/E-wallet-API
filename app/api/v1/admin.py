@@ -72,3 +72,11 @@ async def get_transaction(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
     return transaction
+
+@router.patch("/users/{user_id}/unlock-pin")
+async def unlock_pin(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_admin)
+):
+    return await admin_service.unlock_user_pin(user_id, db)
