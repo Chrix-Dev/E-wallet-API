@@ -7,6 +7,7 @@ class WithdrawalRequest(BaseModel):
     bank_code: str      # e.g "058" for GTB — Paystack uses these codes
     account_number: str # user's actual bank account number
     narration: str | None = None
+    pin: str
 
 
 class WithdrawalResponse(BaseModel):

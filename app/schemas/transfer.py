@@ -8,6 +8,7 @@ class TransferRequest(BaseModel):
     receiver_account_number: str | None = None
     amount: Decimal
     narration: str | None = None
+    pin: str
 
 
 class TransferResponse(BaseModel):
