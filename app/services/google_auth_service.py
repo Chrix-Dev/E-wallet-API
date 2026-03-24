@@ -63,7 +63,7 @@ async def get_google_user_info(access_token: str) -> dict:
 
 
 async def google_login(code: str, db: AsyncSession):
-    # exchange the code Google gave us for an actual access token
+    # exchange the code Google gives for an actual access token
     token_data = await exchange_code_for_token(code)
     google_access_token = token_data.get("access_token")
 
