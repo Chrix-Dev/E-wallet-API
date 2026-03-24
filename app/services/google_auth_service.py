@@ -91,7 +91,7 @@ async def google_login(code: str, db: AsyncSession):
             email=email,
             full_name=full_name,
             google_id=google_id,
-            is_verified=True,  # Google already verified their email
+            is_verified=True, 
         )
         db.add(user)
         await db.flush()
