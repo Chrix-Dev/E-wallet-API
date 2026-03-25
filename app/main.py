@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.sessions import engine
 from app.api.v1 import auth, wallets, webhooks, transactions, users, admin
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -16,6 +17,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # temporary till there's a real frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(wallets.router, prefix="/api/v1")
