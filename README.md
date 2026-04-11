@@ -21,7 +21,7 @@ Built as a portfolio project targeting Nigerian fintech engineering roles.
 | Database | PostgreSQL (Supabase) | Relational data model fits financial data naturally. ACID transactions guarantee atomic money movement |
 | ORM | SQLAlchemy + Alembic | Parameterized queries prevent SQL injection. Alembic provides versioned schema migrations |
 | Cache / Rate limiting | Redis (Redis Cloud) | In-memory store for sub-millisecond reads. Used for balance caching and per-user rate limiting |
-| Auth | JWT + Google OAuth2 | Short-lived access tokens (30min) + long-lived refresh tokens (7 days). Refresh tokens stored as SHA256 hashes — never raw |
+| Auth | JWT + Google OAuth2 | Short-lived access tokens (30min) + long-lived refresh tokens (7 days). Refresh tokens stored as SHA256 hashes, never raw |
 | Payments | Paystack | Licensed Nigerian payment gateway. Handles card processing and bank transfers. We never touch sensitive payment data directly |
 | Email | SendGrid | Transactional email for verification and notifications. Built for reliable delivery at scale unlike Gmail SMTP |
 | PDF Export | ReportLab | Generates bank-style transaction statements |
