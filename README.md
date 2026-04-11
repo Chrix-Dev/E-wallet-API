@@ -17,7 +17,7 @@ Built as a portfolio project targeting Nigerian fintech engineering roles.
 
 | Layer | Technology | Why |
 |---|---|---|
-| Framework | FastAPI | Async support handles concurrent I/O efficiently — critical for a payment system making DB, Redis, and external API calls simultaneously |
+| Framework | FastAPI | Async support handles concurrent I/O efficiently, critical for a payment system making DB, Redis, and external API calls simultaneously |
 | Database | PostgreSQL (Supabase) | Relational data model fits financial data naturally. ACID transactions guarantee atomic money movement |
 | ORM | SQLAlchemy + Alembic | Parameterized queries prevent SQL injection. Alembic provides versioned schema migrations |
 | Cache / Rate limiting | Redis (Redis Cloud) | In-memory store for sub-millisecond reads. Used for balance caching and per-user rate limiting |
@@ -25,6 +25,7 @@ Built as a portfolio project targeting Nigerian fintech engineering roles.
 | Payments | Paystack | Licensed Nigerian payment gateway. Handles card processing and bank transfers. We never touch sensitive payment data directly |
 | Email | SendGrid | Transactional email for verification and notifications. Built for reliable delivery at scale unlike Gmail SMTP |
 | PDF Export | ReportLab | Generates bank-style transaction statements |
+| Testing | pytest + httpx | Async test suite against a dedicated PostgreSQL test database |
 
 ---
 
@@ -196,6 +197,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 
 DATABASE_URL=postgresql+asyncpg://...
 SYNC_DATABASE_URL=postgresql+psycopg2://...
+TEST_DATABASE_URL=postgresql+asyncpg://...
 
 REDIS_URL=redis://...
 
@@ -248,13 +250,55 @@ verification_tokens — email verification flow
 
 ---
 
+## Testing
+
+Tests run against a dedicated PostgreSQL test database (a separate Supabase project) to mirror the production environment exactly. SQLite is not used — the test DB uses the same PostgreSQL types (UUID, Numeric, JSONB) as production so type-related bugs surface during testing, not in deployment.
+
+### Setup
+
+Add your test database URL to `.env`:
+
+```env
+TEST_DATABASE_URL=postgresql+asyncpg://postgres:[password]@[host]:6543/postgres
+```
+
+### How it works
+
+- Tables are created fresh before each test and dropped after — full isolation per test function
+- The `get_db` dependency is overridden to use the test database session
+- External calls (Paystack, SendGrid) are mocked so tests never hit real third-party APIs
+- Admin users are seeded directly into the test DB, mirroring the `create_admin.py` script
+
+### Running tests
+
+```bash
+# run all tests
+pytest
+
+# run a specific file
+pytest Tests/test_auth.py
+
+# run with output
+pytest -v
+```
+
+### Test coverage
+
+| File | What's tested |
+|---|---|
+| `test_auth.py` | Registration, login, email verification, token refresh, logout, get current user, change password |
+| `test_wallet.py` | Get wallet, set PIN, change PIN, fund wallet, PIN validation |
+| `test_transfer.py` | Transfer by email, transfer by account number, idempotency, wrong PIN, insufficient balance, withdrawal, missing headers |
+| `test_admin.py` | Dashboard access, list/filter users, user detail, toggle status, list/filter transactions, unlock PIN, admin-only access enforcement |
+
+---
+
 ## What I'd Add in Production
 
 - **Real BVN verification** via Smile ID or Paystack Identity (currently simulated)
 - **Celery + Redis** for webhook processing queue instead of FastAPI BackgroundTasks
 - **Read replicas** for transaction history queries
 - **Sentry** for error monitoring and alerting
-- **Test suite** covering critical financial paths
 - **Rate limiting** at the infrastructure level (nginx/Cloudflare) in addition to application level
 
 ---
