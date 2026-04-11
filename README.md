@@ -138,7 +138,7 @@ TRANSACTIONS
 
 USERS
   POST   /api/v1/users/upgrade-tier2
-  POST   /api/v1/users/upgrade-premium
+  POST   /api/v1/users/upgrade-tier3
   GET    /api/v1/users/me/limits
 
 ADMIN
